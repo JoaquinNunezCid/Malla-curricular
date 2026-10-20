@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10251d">
+  <meta name="description" content="Herramienta gratuita para seguir el avance en Ingeniería Mecatrónica de la UNLZ, ponderado por horas de cursada.">
+  <title>Malla interactiva · Ingeniería Mecatrónica UNLZ</title>
+  <style>
+    :root{color-scheme:light;--ink:#17251f;--muted:#5b6b63;--line:#dce5df;--paper:#f4f7f4;--card:#fff;--green:#176b4d;--green-soft:#e3f4eb;--blue:#e9f2fb;--blue-ink:#245a82;--amber:#fff3d6;--amber-ink:#855a00;--shadow:0 6px 24px #10251d0b}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+    button,input{font:inherit}
+    button{cursor:pointer}
+    .hero{background:#10251d;color:#f6fbf7;padding:28px 20px 24px}
+    .hero-inner,.page{width:min(1440px,100%);margin:0 auto}
+    .eyebrow{font-size:.78rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#a6d6bb;margin:0 0 8px}
+    h1{font-size:clamp(1.55rem,3vw,2.35rem);line-height:1.13;margin:0;letter-spacing:-.025em}
+    .intro{color:#d3e2d9;max-width:820px;margin:12px 0 0}
+    .hero-note{font-size:.88rem;color:#c0d1c7;margin:10px 0 0}
+    .page{padding:20px}
+    .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 0 16px}
+    .stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px;box-shadow:var(--shadow);min-width:0}
+    .stat .label{display:block;font-size:.82rem;color:var(--muted);margin-bottom:5px}
+    .stat strong{font-size:clamp(1.2rem,2.2vw,1.75rem);letter-spacing:-.03em;overflow-wrap:anywhere}
+    .progress-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:16px}
+    .progress-label{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px;font-weight:750}
+    .track{height:12px;background:#e5ece7;border-radius:99px;overflow:hidden}
+    .bar{width:0;height:100%;background:#25865c;border-radius:99px;transition:width .2s ease}
+    .progress-sub{font-size:.85rem;color:var(--muted);margin:9px 0 0}
+    .notice{background:#fff;border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin-bottom:18px;color:#35483d;font-size:.9rem}
+    .notice strong{color:var(--ink)}
+    .tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 14px}
+    .search-wrap{flex:1;min-width:230px;position:relative}
+    .search-wrap input{width:100%;min-height:44px;border:1px solid #c5d2c9;border-radius:10px;background:#fff;padding:10px 12px;color:var(--ink)}
+    .filter-group{display:flex;gap:6px;flex-wrap:wrap}
+    .btn,.filter{border:1px solid #c8d6cc;border-radius:10px;min-height:42px;padding:9px 12px;background:#fff;color:var(--ink);font-weight:700}
+    .btn.primary{background:var(--green);color:#fff;border-color:var(--green)}
+    .btn.danger{color:#883d34;border-color:#e7c7c3}
+    .filter[aria-pressed="true"]{background:#e2f3e9;border-color:#8fc6a7;color:#155c40}
+    .file-input{display:none}
+    .legend{display:flex;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:.83rem;margin:0 0 18px}
+    .legend span{display:flex;align-items:center;gap:6px}
+    .dot{width:10px;height:10px;border-radius:50%;display:inline-block;border:1px solid #b5c3ba}
+    .dot.done{background:#3aa36d;border-color:#3aa36d}.dot.available{background:#7db4e3;border-color:#7db4e3}.dot.locked{background:#e1e5e2}
+    .grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;align-items:start}
+    .term{background:#edf2ee;border:1px solid #d8e2da;border-radius:14px;padding:10px;min-width:0}
+    .term h2{font-size:.9rem;margin:2px 4px 10px;color:#46584d}
+    .term-count{font-weight:500;color:#708077;font-size:.78rem}
+    .courses{display:flex;flex-direction:column;gap:8px}
+    .course{display:block;text-align:left;width:100%;min-height:112px;padding:11px;border:1px solid #d5dfd7;border-radius:11px;background:#fff;color:var(--ink);box-shadow:0 2px 6px #10251d05;transition:transform .08s,border-color .12s,box-shadow .12s}
+    .course:hover{border-color:#86ad96;box-shadow:0 4px 12px #10251d0c}
+    .course:active{transform:scale(.99)}
+    .course:focus-visible,.btn:focus-visible,.filter:focus-visible,input:focus-visible{outline:3px solid #75a8e0;outline-offset:2px}
+    .course.done{border-color:#87c7a4;background:var(--green-soft)}
+    .course.available{border-color:#b8d1e8}
+    .course.locked{background:#f6f7f6;color:#64716a}
+    .course[hidden],.term[hidden]{display:none}
+    .course-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:7px}
+    .course-id{font-size:.72rem;font-weight:850;color:#6c7b71}
+    .badge{font-size:.68rem;font-weight:800;border-radius:999px;padding:3px 7px;white-space:nowrap;background:#edf0ee;color:#59675f}
+    .done .badge{background:#c5ead5;color:#145d3d}.available .badge{background:var(--blue);color:var(--blue-ink)}.locked .badge{background:var(--amber);color:var(--amber-ink)}
+    .course-name{display:block;font-size:.9rem;line-height:1.25;font-weight:800;margin-bottom:8px}
+    .course-meta{font-size:.77rem;color:var(--muted)}
+    .course-note{font-size:.73rem;line-height:1.3;color:#69786f;margin-top:6px}
+    .empty{padding:20px;border:1px dashed #b8c8bd;border-radius:12px;color:var(--muted);text-align:center;grid-column:1/-1}
+    footer{font-size:.82rem;color:var(--muted);padding:24px 2px 12px}
+    footer a{color:var(--green)}
+    .toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#10251d;color:white;padding:11px 15px;border-radius:10px;box-shadow:0 8px 28px #0002;max-width:calc(100% - 28px);z-index:100;font-size:.9rem}
+    .toast[hidden]{display:none}
+    @media(max-width:1180px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+    @media(max-width:760px){.page{padding:13px}.hero{padding:23px 16px}.stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.stat{padding:12px}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.term{padding:8px}.course{padding:9px;min-height:120px}.course-name{font-size:.84rem}.tools{align-items:stretch}.search-wrap{flex-basis:100%}.filter-group{width:100%}.filter{flex:1;padding:8px 9px}.tools .btn{flex:1}}
+    @media(max-width:430px){.grid{grid-template-columns:1fr}.course{min-height:0}.stats{gap:8px}.stat strong{font-size:1.35rem}}
+    @media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow">Herramienta comunitaria de seguimiento</p>
+      <h1>Malla interactiva de Ingeniería Mecatrónica</h1>
+      <p class="intro">Universidad Nacional de Lomas de Zamora (UNLZ). Marcá las materias aprobadas y seguí tu avance ponderado por carga horaria.</p>
+      <p class="hero-note">Gratis · Sin cuenta · No se envían tus datos a un servidor</p>
+    </div>
+  </header>
+  <main class="page">
+    <section class="stats" aria-label="Resumen del progreso">
+      <div class="stat"><span class="label">Materias aprobadas</span><strong><span id="approvedCount">0</span><span aria-hidden="true"> / </span><span id="subjectCount">49</span></strong></div>
+      <div class="stat"><span class="label">Horas aprobadas</span><strong><span id="approvedHours">0</span><span aria-hidden="true"> / </span><span id="totalHours">3424</span></strong><span class="label">horas del plan</span></div>
+      <div class="stat"><span class="label">Avance ponderado por horas</span><strong id="progressPercent">0,0 %</strong></div>
+      <div class="stat"><span class="label">Materias disponibles</span><strong id="availableCount">4</strong></div>
+    </section>
+    <section class="progress-card" aria-label="Barra de progreso">
+      <div class="progress-label"><span>Progreso de la carrera</span><span id="progressFraction">0 de 3.424 horas</span></div>
+      <div class="track" id="progressTrack" role="progressbar" aria-label="Avance ponderado por carga horaria" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="bar" id="progressBar"></div></div>
+      <p class="progress-sub">El porcentaje se calcula como horas de materias aprobadas ÷ horas totales registradas en esta malla.</p>
+    </section>
+    <aside class="notice"><strong>Antes de empezar:</strong> tu progreso se guarda únicamente en este navegador y dispositivo. Usá «Exportar respaldo» para conservarlo o trasladarlo. Esta es una herramienta no oficial: verificá la carga horaria y las correlativas con el plan vigente de la Facultad.</aside>
+    <section class="tools" aria-label="Herramientas de seguimiento">
+      <div class="search-wrap"><input id="search" type="search" placeholder="Buscar una materia…" autocomplete="off" aria-label="Buscar una materia por nombre"></div>
+      <div class="filter-group" role="group" aria-label="Filtrar materias">
+        <button class="filter" type="button" data-filter="all" aria-pressed="true">Todas</button>
+        <button class="filter" type="button" data-filter="available" aria-pressed="false">Disponibles</button>
+        <button class="filter" type="button" data-filter="done" aria-pressed="false">Aprobadas</button>
+        <button class="filter" type="button" data-filter="locked" aria-pressed="false">Con correlativas pendientes</button>
+      </div>
+      <button class="btn primary" type="button" id="exportBtn">Exportar respaldo</button>
+      <button class="btn" type="button" id="importBtn">Importar respaldo</button>
+      <input class="file-input" id="importFile" type="file" accept="application/json,.json" aria-label="Seleccionar respaldo JSON">
+      <button class="btn danger" type="button" id="resetBtn">Borrar mi progreso</button>
+    </section>
+    <div class="legend" aria-label="Significado de los estados">
+      <span><i class="dot done"></i>Aprobada</span><span><i class="dot available"></i>Disponible según correlativas</span><span><i class="dot locked"></i>Con correlativas pendientes</span>
+    </div>
+    <section class="grid" id="curriculum" aria-label="Materias por cuatrimestre"></section>
+    <footer>
+      <p><strong>Sobre los datos:</strong> la malla incluye 49 materias y 3.424 horas, transcritas de una versión de referencia del plan de estudios. Los nombres, horas o correlativas pueden cambiar o contener errores. Esta página no está afiliada oficialmente a la UNLZ y no reemplaza el SIU ni la información de la Facultad.</p>
+      <p>Al abrir esta página desde GitHub Pages, cada estudiante mantiene su propio progreso en su navegador. No hay cuentas, seguimiento de usuarios ni base de datos central.</p>
+    </footer>
+  </main>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+  <script>
+    "use strict";
+    const SUBJECTS = [{"id":1,"name":"Medios de Rep. Gráf. I","hours":128,"term":1,"semester":"1° cuatrimestre","prerequisites":[]},{"id":2,"name":"Introducción a la Ingeniería","hours":64,"term":1,"semester":"1° cuatrimestre","prerequisites":[]},{"id":3,"name":"Inglés","hours":64,"term":1,"semester":"1° cuatrimestre","prerequisites":[]},{"id":4,"name":"Taller de Informática Gral. y Aplicada","hours":32,"term":1,"semester":"1° cuatrimestre","prerequisites":[]},{"id":5,"name":"Medios de Rep. Gráf. II","hours":128,"term":2,"semester":"2° cuatrimestre","prerequisites":[1]},{"id":6,"name":"Fundamentos de los Comp. Digitales","hours":64,"term":2,"semester":"2° cuatrimestre","prerequisites":[4]},{"id":7,"name":"Higiene y Seg. en el Trabajo I","hours":32,"term":2,"semester":"2° cuatrimestre","prerequisites":[2]},{"id":8,"name":"Introducción a la Gest. del M. A.","hours":32,"term":2,"semester":"2° cuatrimestre","prerequisites":[2]},{"id":9,"name":"Economía I","hours":32,"term":2,"semester":"2° cuatrimestre","prerequisites":[2]},{"id":10,"name":"Matemática I","hours":128,"term":3,"semester":"3° cuatrimestre","prerequisites":[2]},{"id":11,"name":"Intro. a la Gestión de la Inn. y la Tecnol.","hours":32,"term":3,"semester":"3° cuatrimestre","prerequisites":[2,3,9]},{"id":12,"name":"Informática y Programación Industrial","hours":64,"term":3,"semester":"3° cuatrimestre","prerequisites":[6]},{"id":13,"name":"Legislación y Ejercicio Profesional","hours":64,"term":3,"semester":"3° cuatrimestre","prerequisites":[7]},{"id":14,"name":"Gestión de la Calidad","hours":32,"term":3,"semester":"3° cuatrimestre","prerequisites":[9]},{"id":15,"name":"Economía II","hours":32,"term":3,"semester":"3° cuatrimestre","prerequisites":[9]},{"id":16,"name":"Física I","hours":128,"term":4,"semester":"4° cuatrimestre","prerequisites":[10]},{"id":17,"name":"Organización y Gestión Industrial","hours":64,"term":4,"semester":"4° cuatrimestre","prerequisites":[5,14,15]},{"id":18,"name":"Fundamentos de Química","hours":64,"term":4,"semester":"4° cuatrimestre","prerequisites":[8]},{"id":19,"name":"Matemática II","hours":128,"term":4,"semester":"4° cuatrimestre","prerequisites":[10]},{"id":20,"name":"Cálculo I","hours":128,"term":5,"semester":"5° cuatrimestre","prerequisites":[19]},{"id":21,"name":"Termodinámica","hours":128,"term":5,"semester":"5° cuatrimestre","prerequisites":[16,18]},{"id":22,"name":"Física II","hours":64,"term":5,"semester":"5° cuatrimestre","prerequisites":[16]},{"id":23,"name":"Probabilidad y Estadística","hours":64,"term":5,"semester":"5° cuatrimestre","prerequisites":[10,14]},{"id":24,"name":"Estática","hours":128,"term":5,"semester":"5° cuatrimestre","prerequisites":[5,16]},{"id":25,"name":"Higiene y Seg. en el Trabajo II","hours":32,"term":6,"semester":"6° cuatrimestre","prerequisites":[7,22]},{"id":26,"name":"Cálculo II","hours":128,"term":6,"semester":"6° cuatrimestre","prerequisites":[20]},{"id":27,"name":"Mecánica Teórica","hours":32,"term":6,"semester":"6° cuatrimestre","prerequisites":[20]},{"id":28,"name":"Electrónica General y de Potencia","hours":64,"term":6,"semester":"6° cuatrimestre","prerequisites":[12,22]},{"id":29,"name":"Formulación, Gest. y Evaluac. de Proyectos","hours":64,"term":7,"semester":"7° cuatrimestre","prerequisites":[17,20]},{"id":30,"name":"Mecánica de los Materiales","hours":64,"term":7,"semester":"7° cuatrimestre","prerequisites":[24]},{"id":31,"name":"Ciencia y Tecnol. de los Materiales","hours":64,"term":7,"semester":"7° cuatrimestre","prerequisites":[18,24]},{"id":32,"name":"Electrotecnia","hours":128,"term":7,"semester":"7° cuatrimestre","prerequisites":[22,26]},{"id":33,"name":"Sistemas y Tecnol. para la Gest. Ambiental","hours":32,"term":7,"semester":"7° cuatrimestre","prerequisites":[7,17]},{"id":34,"name":"Mecanismos","hours":32,"term":7,"semester":"7° cuatrimestre","prerequisites":[27]},{"id":35,"name":"Tecnología de Fabricación","hours":64,"term":8,"semester":"8° cuatrimestre","prerequisites":[30,34]},{"id":36,"name":"Tecnología del Calor","hours":64,"term":8,"semester":"8° cuatrimestre","prerequisites":[21,26]},{"id":37,"name":"Mecánica de los Fluidos","hours":64,"term":8,"semester":"8° cuatrimestre","prerequisites":[21,26]},{"id":38,"name":"Máquinas e Instalaciones Eléctricas","hours":64,"term":8,"semester":"8° cuatrimestre","prerequisites":[32]},{"id":39,"name":"Modelado y Dinámica de Sist. Mecánicos","hours":64,"term":8,"semester":"8° cuatrimestre","prerequisites":[26,30]},{"id":40,"name":"Diseño de Componentes de Máquinas","hours":96,"term":9,"semester":"9° cuatrimestre","prerequisites":[23,35,39]},{"id":41,"name":"Diseño de Sistemas Mecatrónicos","hours":64,"term":9,"semester":"9° cuatrimestre","prerequisites":[28,35]},{"id":42,"name":"Vigilancia Tecnol. e Inteligencia Comp.","hours":32,"term":9,"semester":"9° cuatrimestre","prerequisites":[11,13,35]},{"id":43,"name":"Procesamiento de Datos","hours":64,"term":9,"semester":"9° cuatrimestre","prerequisites":[28,35,39]},{"id":44,"name":"Automatización Industrial","hours":64,"term":9,"semester":"9° cuatrimestre","prerequisites":[28,32,37]},{"id":45,"name":"Fundamentos de Robótica","hours":64,"term":10,"semester":"10° cuatrimestre","prerequisites":[41]},{"id":46,"name":"Instrumentación Ind., Med. Mecánicas y Elec.","hours":64,"term":10,"semester":"10° cuatrimestre","prerequisites":[35,38]},{"id":47,"name":"Sistemas de Control","hours":64,"term":10,"semester":"10° cuatrimestre","prerequisites":[44]},{"id":48,"name":"Redes de Comunicación Industriales","hours":64,"term":10,"semester":"10° cuatrimestre","prerequisites":[43]},{"id":49,"name":"Proyecto en Ingeniería Mecatrónica","hours":64,"term":10,"semester":"10° cuatrimestre","prerequisites":[29,40,41,42,44]}];
+    const STORAGE_KEY = "unlz_mecatronica_progress_public_v1";
+    const TOTAL_HOURS = SUBJECTS.reduce((sum, s) => sum + s.hours, 0);
+    const completed = new Set();
+    let activeFilter = "all";
+    let toastTimer;
+
+    const fmt = (n) => n.toLocaleString("es-AR");
+    const normalize = (v) => String(v || "").toLocaleLowerCase("es").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const subjectById = new Map(SUBJECTS.map(s => [s.id, s]));
+
+    function canTake(subject) {
+      return subject.prerequisites.every(id => completed.has(id));
+    }
+    function missingPrerequisites(subject) {
+      return subject.prerequisites.filter(id => !completed.has(id)).map(id => subjectById.get(id)).filter(Boolean);
+    }
+    function showToast(message) {
+      const el = document.getElementById("toast");
+      el.textContent = message;
+      el.hidden = false;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { el.hidden = true; }, 3200);
+    }
+    function persist() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify([...completed].sort((a,b) => a-b)));
+      } catch (error) {
+        showToast("No se pudo guardar en este navegador. Exportá un respaldo para no perder el progreso.");
+      }
+    }
+    function loadSaved() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const data = JSON.parse(raw);
+        if (Array.isArray(data)) data.forEach(id => { if (Number.isInteger(id) && subjectById.has(id)) completed.add(id); });
+      } catch (error) {
+        showToast("No se pudo leer el progreso guardado. Podés importar un respaldo JSON.");
+      }
+    }
+    function makeCourseCard(subject) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "course";
+      btn.dataset.id = String(subject.id);
+      const top = document.createElement("span"); top.className = "course-top";
+      const num = document.createElement("span"); num.className = "course-id"; num.textContent = `Materia ${String(subject.id).padStart(2,"0")}`;
+      const badge = document.createElement("span"); badge.className = "badge"; badge.dataset.role = "badge";
+      top.append(num,badge);
+      const name = document.createElement("span"); name.className = "course-name"; name.textContent = subject.name;
+      const meta = document.createElement("span"); meta.className = "course-meta"; meta.textContent = `${fmt(subject.hours)} horas`;
+      const note = document.createElement("span"); note.className = "course-note"; note.dataset.role = "note";
+      btn.append(top,name,meta,note);
+      btn.addEventListener("click", () => toggleSubject(subject.id));
+      return btn;
+    }
+    function renderCurriculum() {
+      const root = document.getElementById("curriculum");
+      root.replaceChildren();
+      for (let term = 1; term <= 10; term++) {
+        const subset = SUBJECTS.filter(s => s.term === term);
+        const section = document.createElement("section"); section.className = "term"; section.dataset.term = String(term);
+        const h = document.createElement("h2"); h.innerHTML = `${term}° cuatrimestre <span class="term-count">· ${subset.length} materias</span>`;
+        const cards = document.createElement("div"); cards.className = "courses";
+        subset.forEach(s => cards.appendChild(makeCourseCard(s)));
+        section.append(h,cards); root.appendChild(section);
+      }
+      renderProgress(); applyFilters();
+    }
+    function renderProgress() {
+      let doneHours = 0, available = 0;
+      document.querySelectorAll(".course").forEach(btn => {
+        const id = Number(btn.dataset.id); const s = subjectById.get(id);
+        const done = completed.has(id); const open = canTake(s); const missing = missingPrerequisites(s);
+        btn.classList.toggle("done",done); btn.classList.toggle("available",!done && open); btn.classList.toggle("locked",!done && !open);
+        const badge = btn.querySelector('[data-role="badge"]');
+        badge.textContent = done ? "Aprobada" : open ? "Disponible" : "Correlativas pendientes";
+        const note = btn.querySelector('[data-role="note"]');
+        if (done) { doneHours += s.hours; note.textContent = "Marcada como aprobada · tocá para desmarcar"; }
+        else if (open) { available++; note.textContent = s.prerequisites.length ? "Correlativas registradas como cumplidas" : "Sin correlativas previas en esta malla"; }
+        else { note.textContent = "Falta: " + missing.map(p => p.name).join(", "); }
+        btn.setAttribute("aria-pressed", done ? "true" : "false");
+        btn.setAttribute("aria-label", `${s.name}, ${s.hours} horas. ${badge.textContent}. ${note.textContent}`);
+      });
+      const count = completed.size;
+      const pct = TOTAL_HOURS ? doneHours / TOTAL_HOURS * 100 : 0;
+      document.getElementById("approvedCount").textContent = fmt(count);
+      document.getElementById("subjectCount").textContent = fmt(SUBJECTS.length);
+      document.getElementById("approvedHours").textContent = fmt(doneHours);
+      document.getElementById("totalHours").textContent = fmt(TOTAL_HOURS);
+      document.getElementById("progressPercent").textContent = pct.toLocaleString("es-AR",{minimumFractionDigits:1,maximumFractionDigits:1}) + " %";
+      document.getElementById("progressFraction").textContent = `${fmt(doneHours)} de ${fmt(TOTAL_HOURS)} horas`;
+      document.getElementById("progressBar").style.width = `${pct}%`;
+      const track = document.getElementById("progressTrack"); track.setAttribute("aria-valuenow",pct.toFixed(1));
+      document.getElementById("availableCount").textContent = fmt(available);
+    }
+    function applyFilters() {
+      const query = normalize(document.getElementById("search").value.trim());
+      document.querySelectorAll(".course").forEach(btn => {
+        const subject = subjectById.get(Number(btn.dataset.id));
+        const done = completed.has(subject.id); const open = canTake(subject);
+        const filterMatch = activeFilter === "all" || (activeFilter === "done" && done) || (activeFilter === "available" && !done && open) || (activeFilter === "locked" && !done && !open);
+        const queryMatch = normalize(subject.name).includes(query) || String(subject.id).includes(query);
+        btn.hidden = !(filterMatch && queryMatch);
+      });
+      document.querySelectorAll(".term").forEach(section => {
+        section.hidden = ![...section.querySelectorAll(".course")].some(btn => !btn.hidden);
+      });
+      const any = [...document.querySelectorAll(".course")].some(btn => !btn.hidden);
+      let empty = document.getElementById("emptyMessage");
+      if (!any) {
+        if (!empty) { empty = document.createElement("div"); empty.id = "emptyMessage"; empty.className = "empty"; empty.textContent = "No se encontraron materias con ese filtro."; document.getElementById("curriculum").appendChild(empty); }
+      } else if (empty) empty.remove();
+      document.querySelectorAll("[data-filter]").forEach(btn => btn.setAttribute("aria-pressed",btn.dataset.filter === activeFilter ? "true" : "false"));
+    }
+    function toggleSubject(id) {
+      const subject = subjectById.get(id);
+      if (completed.has(id)) {
+        if (!confirm(`¿Desmarcar «${subject.name}» como aprobada?`)) return;
+        completed.delete(id);
+        // Removing a prerequisite can leave later subjects marked as complete. Preserve records, but explain the discrepancy.
+        persist(); renderProgress(); applyFilters(); showToast("Progreso actualizado.");
+        return;
+      }
+      const missing = missingPrerequisites(subject);
+      if (missing.length) {
+        const names = missing.map(s => s.name).join("\n• ");
+        const ok = confirm(`Esta materia figura con correlativas pendientes:\n• ${names}\n\nSi ya la aprobaste o tu plan tiene una excepción, podés registrarla de todos modos. ¿Marcar como aprobada?`);
+        if (!ok) return;
+      }
+      completed.add(id); persist(); renderProgress(); applyFilters(); showToast(`${subject.name}: registrada como aprobada.`);
+    }
+    function exportProgress() {
+      const backup = {app:"Malla interactiva Ingeniería Mecatrónica UNLZ",version:1,exportedAt:new Date().toISOString(),completedSubjectIds:[...completed].sort((a,b)=>a-b)};
+      const blob = new Blob([JSON.stringify(backup,null,2)],{type:"application/json"});
+      const url = URL.createObjectURL(blob); const a = document.createElement("a");
+      a.href = url; a.download = "mi-progreso-mecatronica-unlz.json"; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+      showToast("Respaldo descargado.");
+    }
+    function importProgress(file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const data = JSON.parse(String(reader.result));
+          const ids = Array.isArray(data) ? data : data.completedSubjectIds;
+          if (!Array.isArray(ids)) throw new Error("Formato no reconocido");
+          const clean = [...new Set(ids.map(Number).filter(id => Number.isInteger(id) && subjectById.has(id)))];
+          if (ids.length && !clean.length) throw new Error("El archivo no contiene IDs de materias válidos");
+          if (!confirm(`Se cargarán ${clean.length} materias aprobadas desde el respaldo. Se reemplazará el progreso actual. ¿Continuar?`)) return;
+          completed.clear(); clean.forEach(id => completed.add(id)); persist(); renderProgress(); applyFilters();
+          showToast("Respaldo importado correctamente.");
+        } catch (error) { alert("No se pudo importar el respaldo. Seleccioná un archivo JSON exportado por esta aplicación."); }
+        document.getElementById("importFile").value = "";
+      };
+      reader.onerror = () => alert("No se pudo leer el archivo seleccionado.");
+      reader.readAsText(file);
+    }
+
+    document.getElementById("search").addEventListener("input", applyFilters);
+    document.querySelectorAll("[data-filter]").forEach(btn => btn.addEventListener("click", () => { activeFilter = btn.dataset.filter; applyFilters(); }));
+    document.getElementById("resetBtn").addEventListener("click", () => {
+      if (!confirm("¿Borrar todo tu progreso guardado en este navegador? Esta acción no se puede deshacer si no exportaste un respaldo.")) return;
+      completed.clear(); persist(); renderProgress(); applyFilters(); showToast("Tu progreso fue restablecido.");
+    });
+    document.getElementById("exportBtn").addEventListener("click", exportProgress);
+    document.getElementById("importBtn").addEventListener("click", () => document.getElementById("importFile").click());
+    document.getElementById("importFile").addEventListener("change", event => { const file = event.target.files && event.target.files[0]; if (file) importProgress(file); });
+
+    loadSaved();
+    renderCurriculum();
+  </script>
+</body>
+</html>
